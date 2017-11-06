@@ -57,7 +57,7 @@ public class Tiny {
 		
 	public static void main(String[] args) {
 		String input = "mul 3 sub 2 sum 1 3 4";
-		System.out.println(new CodeGenerator().generate(new Parser(lexer(input)).parse()));
+		System.out.println(codeGenerator(new Parser(lexer(input)).parse()));
 		System.out.println(eval(new Parser(lexer(input)).parse()));
 	}
 }
