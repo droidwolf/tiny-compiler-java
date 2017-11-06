@@ -38,15 +38,17 @@ public class Tiny {
 		}
 		public Node parse() { return (next=lex.next()).matches("\\d+") ? new Node(Integer.parseInt(next), NUM) : parseOp(next); }
 	}
-	private static class CodeGenerator {
-		final static Map<String, String> opMap = new HashMap<String, String>(4) { { put("sum", "+"); put("sub", "-"); put("div", "/"); put("mul", "*"); } };
-		public String generate(Node ast) { return ast.type == NUM ? String.valueOf(ast.val) : genOp(ast); }
-		private String genOp(Node node) { return "(" + node.stream().map(n -> new CodeGenerator().generate(n)) .collect(Collectors.joining(" " + opMap.get(node.val) + " ")) + ")"; }
-	}
+	final static Map<String, String> opMap = new HashMap<String, String>(4) {{ put("sum", "+"); put("sub", "-"); put("div", "/"); put("mul", "*");}};
+	private static String codeGenerator (Node ast) { return ast.type == NUM ? String.valueOf(ast.val) : genOp(ast); }
+	private static String genOp(Node node) { return "(" + node.stream().map(n -> codeGenerator(n)) .collect(Collectors.joining(" " + opMap.get(node.val) + " ")) + ")"; }
 	private static class Node  extends ArrayDeque<Node>{
 		Object val; 
 		int type;
-		public Node(Object val, int type) {super(); this.val = val; this.type = type;}
+		public Node(Object val, int type) {
+			super();
+			this.val = val;
+			this.type = type;
+		}
 	}
 	private static int eval(Node ast) { return (int) (ast.type == NUM ? ast.val : ast.stream().reduce(evalOps.get(ast.val)).get().val); }
 	final static Map<String,BinaryOperator<Node>> evalOps=new HashMap<String,BinaryOperator<Node>>(4) {{
