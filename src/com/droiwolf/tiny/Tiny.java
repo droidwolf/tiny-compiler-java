@@ -26,11 +26,6 @@ import java.util.stream.Stream;
  */
 public class Tiny {
 	static final int OP = 0, NUM = 1;
-	public static void main(String[] args) {
-		String input = "mul 3 sub 2 sum 1 3 4";
-		System.out.println(new CodeGenerator(new Parser(lexer(input)).parse()).generate());
-		System.out.println(eval(new Parser(lexer(input)).parse()));
-	}
 	private static List<String> lexer(String input){return  Stream.of(input.split(" ")).map(String::trim).filter(s -> s.length() > 0).collect(Collectors.toList());}
 	private static class Parser {
 		Iterator<String> lex;
@@ -43,12 +38,10 @@ public class Tiny {
 		}
 		public Node parse() { return (next=lex.next()).matches("\\d+") ? new Node(Integer.parseInt(next), NUM) : parseOp(next); }
 	}
-	private static class CodeGenerator{
-		Node ast; 
-		final static Map<String,String> opMap=new HashMap<String,String>(4){{ put("sum", "+");put("sub", "-");put("div", "/"); put("mul", "*"); }};
-		public CodeGenerator(Node ast) { this.ast = ast; }
-		public String generate() { return ast.type==NUM? String.valueOf(ast.val) : genOp(); }
-		private String genOp() { return "("+ast.stream().map(n->new CodeGenerator(n).generate()).collect(Collectors.joining(" "+opMap.get(ast.val)+" "))+")";}
+	private static class CodeGenerator {
+		final static Map<String, String> opMap = new HashMap<String, String>(4) { { put("sum", "+"); put("sub", "-"); put("div", "/"); put("mul", "*"); } };
+		public String generate(Node ast) { return ast.type == NUM ? String.valueOf(ast.val) : genOp(ast); }
+		private String genOp(Node node) { return "(" + node.stream().map(n -> new CodeGenerator().generate(n)) .collect(Collectors.joining(" " + opMap.get(node.val) + " ")) + ")"; }
 	}
 	private static class Node  extends ArrayDeque<Node>{
 		Object val; 
@@ -59,4 +52,10 @@ public class Tiny {
 	final static Map<String,BinaryOperator<Node>> evalOps=new HashMap<String,BinaryOperator<Node>>(4) {{
 		put("sum", (a, b) -> new Node(eval(a) + eval(b), NUM)); put("sub", (a, b) -> new Node(eval(a) - eval(b), NUM));
 		put("div", (a, b) -> new Node(eval(a) / eval(b), NUM)); put("mul", (a, b) -> new Node(eval(a) * eval(b), NUM));}};
+		
+	public static void main(String[] args) {
+		String input = "mul 3 sub 2 sum 1 3 4";
+		System.out.println(new CodeGenerator().generate(new Parser(lexer(input)).parse()));
+		System.out.println(eval(new Parser(lexer(input)).parse()));
+	}
 }
